@@ -1,13 +1,20 @@
 package br.com.alura.escolalura.models;
 
 public class Curso {
-	  private String nome;
+	private String nome;
 
-	  public String getNome() {
-	    return nome;
-	  }
+	public Curso() {
 
-	  public void setNome(String nome) {
-	    this.nome = nome;
-	  }
 	}
+	public Curso(String nomeCurso) {
+		this.nome = nomeCurso;
+	}
+
+	public String getNome() {
+		return nome;
+	}
+
+	public void setNome(String nome) {
+		this.nome = nome;
+	}
+}
