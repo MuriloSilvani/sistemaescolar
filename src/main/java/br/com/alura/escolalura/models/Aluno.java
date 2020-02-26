@@ -16,6 +16,9 @@ public class Aluno {
 	private List<Nota> notas;
 	private List<Habilidade> habilidades;
 
+	private Contato contato;
+	
+
 	public ObjectId getId() {
 		return id;
 	}
@@ -49,7 +52,7 @@ public class Aluno {
 	}
 
 	public List<Nota> getNotas() {
-		if(notas == null) {
+		if (notas == null) {
 			notas = new ArrayList<Nota>();
 		}
 		return notas;
@@ -70,6 +73,14 @@ public class Aluno {
 		this.habilidades = habilidades;
 	}
 
+	public Contato getContato() {
+		return contato;
+	}
+
+	public void setContato(Contato contato) {
+		this.contato = contato;
+	}
+
 	public Aluno criarId() {
 		setId(new ObjectId());
 		return this;
@@ -88,9 +99,9 @@ public class Aluno {
 		List<Nota> notas = aluno.getNotas();
 		notas.add(nota);
 		aluno.setNotas(notas);
-		
+
 		return aluno;
-		
+
 	}
 
 }

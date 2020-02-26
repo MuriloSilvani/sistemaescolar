@@ -16,9 +16,13 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Indexes;
+import com.mongodb.client.model.geojson.Point;
+import com.mongodb.client.model.geojson.Position;
 
 import br.com.alura.escolalura.codecs.AlunoCodec;
 import br.com.alura.escolalura.models.Aluno;
+import br.com.alura.escolalura.models.Nota;
 
 @Repository
 public class AlunoRepository {
@@ -107,18 +111,58 @@ public class AlunoRepository {
 		MongoCollection<Aluno> alunoCollection = this.bancoDeDados.getCollection("alunos", Aluno.class);
 		MongoCursor<Aluno> resultados = null;
 
-		if (classificacao.equals("reprovados")) {
-			resultados = alunoCollection.find(Filters.lt("notas", nota)).iterator();
-		} else if (classificacao.equals("aprovados")) {
-			resultados = alunoCollection.find(Filters.gte("notas", nota)).iterator();
+		// \afazer retorno de alunos pela média
+
+		List<Aluno> alunos = new ArrayList<Aluno>();
+
+		MongoCursor<Aluno> todosAlunos = alunoCollection.find().iterator();
+
+		while (todosAlunos.hasNext()) {
+			Aluno aluno = todosAlunos.next();
+			double media = 0;
+			for (Nota notaAluno : aluno.getNotas()) {
+				media += notaAluno.getValor();
+			}
+			media = media / aluno.getNotas().size();
+
+			if (media < nota && classificacao.equals("reprovados")) {
+				alunos.add(aluno);
+			} else if (media >= nota && classificacao.equals("aprovados")) {
+				alunos.add(aluno);
+			}
 		}
 
-		List<Aluno> alunos = popularAlunos(resultados);
+		// \retorna os alunos que tem alguma nota que preendhe os requisitos
+//		if (classificacao.equals("reprovados")) {
+//			resultados = alunoCollection.find(Filters.lt("notas", nota)).iterator();
+//		} else if (classificacao.equals("aprovados")) {
+//			resultados = alunoCollection.find(Filters.gte("notas", nota)).iterator();
+//		}
+//
+//		List<Aluno> alunos = popularAlunos(resultados);
 
 		fecharConexao();
 
 		return alunos;
 
+	}
+
+	public List<Aluno> pesquisaPorGeolocalizacao(Aluno aluno) {
+		criarConexao();
+		MongoCollection<Aluno> alunoCollection = this.bancoDeDados.getCollection("alunos", Aluno.class);
+
+		alunoCollection.createIndex(Indexes.geo2dsphere("contato"));
+
+		List<Double> coordinates = aluno.getContato().getCoordinates();
+		Point pontoReferencia = new Point(new Position(coordinates.get(0), coordinates.get(1)));
+
+		MongoCursor<Aluno> resultados = alunoCollection
+				.find(Filters.nearSphere("contato", pontoReferencia, 2000.0, 0.0)).limit(2).skip(1).iterator();
+
+		List<Aluno> alunos = popularAlunos(resultados);
+
+		fecharConexao();
+		return alunos;
 	}
 
 }
